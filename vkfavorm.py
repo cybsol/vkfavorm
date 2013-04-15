@@ -16,6 +16,8 @@ import StringIO
 import re
 import urllib
 
+PROFILE = 'default'
+
 if len(sys.argv) < 2:
 	sys.exit('Usage: %s \"songname\"' %sys.argv[0])
 songname=sys.argv[1]
@@ -24,34 +26,34 @@ if len(sys.argv) > 2:
 	for i in range(2,lenght):
 		songname=songname+' '+sys.argv[i]
 
-#FIXME: static prefix
-cookiedb = os.environ['HOME']+'/.mozilla/firefox/uzu6mumz.default/cookies.sqlite'
-targetfile = os.environ['HOME']+'/kuki-.txt'
+# find needed profile dir and cookiesdb from it
+cookiedbpath = os.environ['HOME']+'/.mozilla/firefox/'
+for name in os.listdir(cookiedbpath):
+	if os.path.isdir(cookiedbpath+name) and (PROFILE in name):
+		cookiedbpath=cookiedbpath+name+'/cookies.sqlite'
+		break
 
 what = '.vk.com'
 addHash='undef'
-connection = db.connect(cookiedb)
+connection = db.connect(cookiedbpath)
 cursor = connection.cursor()
-contents = "host, path, isSecure, expiry, name, value"
+contents = "name, value"
 
 cursor.execute("SELECT " +contents+ " FROM moz_cookies WHERE host='" +what+ "'")
-
-file = open(targetfile, 'w')
+cookiemas=[]
 for row in cursor.fetchall():
-	file.write("%s\tTRUE\t%s\t%s\t%d\t%s\t%s\n" % (row[0], row[1],str(bool(row[2])).upper(), row[3], str(row[4]), str(row[5])))
-
-file.close()
+	cookiemas.append(row[0]+'='+row[1])
 connection.close()
 
+cookiestr='; '.join(cookiemas)
 
 tmpdir = '/tmp/add_audio_vk'
 
 if not os.path.isdir(tmpdir):
 	mus = pycurl.Curl()
 	ans = StringIO.StringIO()
+	mus.setopt(pycurl.HTTPHEADER, ['Cookie: '+cookiestr])
 	mus.setopt(pycurl.URL, 'https://vk.com/feed')
-	mus.setopt(pycurl.COOKIEJAR, targetfile)
-	mus.setopt(pycurl.COOKIEFILE, targetfile)
 	mus.setopt(pycurl.FOLLOWLOCATION, 1)
 	mus.setopt(pycurl.WRITEFUNCTION, ans.write)
 	mus.setopt(pycurl.USERAGENT, "Mozilla/5.0 (X11; Linux x86_64; rv:20.0) Gecko/20100101 Firefox/20.0")
@@ -65,9 +67,8 @@ if not os.path.isdir(tmpdir):
 	
 	mus = pycurl.Curl()
 	ans = StringIO.StringIO()
+	mus.setopt(pycurl.HTTPHEADER, ['Cookie: '+cookiestr])
 	mus.setopt(pycurl.URL, 'https://vk.com/'+pageid)
-	mus.setopt(pycurl.COOKIEJAR, targetfile)
-	mus.setopt(pycurl.COOKIEFILE, targetfile)
 	mus.setopt(pycurl.FOLLOWLOCATION, 1)
 	mus.setopt(pycurl.WRITEFUNCTION, ans.write)
 	mus.setopt(pycurl.USERAGENT, "Mozilla/5.0 (X11; Linux x86_64; rv:20.0) Gecko/20100101 Firefox/20.0")
@@ -85,13 +86,12 @@ if not os.path.isdir(tmpdir):
 
 fread=open(tmpdir+'/addhash','r')
 HASHSUM=fread.read()
+fread.close()
 
 mus = pycurl.Curl()
 ans = StringIO.StringIO()
 mus.setopt(pycurl.URL, 'https://m.vk.com/audio')
-mus.setopt(pycurl.HTTPHEADER, ['X-Requested-With: XMLHttpRequest'])
-mus.setopt(pycurl.COOKIEJAR, targetfile)
-mus.setopt(pycurl.COOKIEFILE, targetfile)
+mus.setopt(pycurl.HTTPHEADER, [str('Cookie: '+cookiestr),'X-Requested-With: XMLHttpRequest'])
 mus.setopt(pycurl.POSTFIELDS, 'act=search&_ajax=1&'+urllib.urlencode({'q':songname}))
 mus.setopt(pycurl.POST, 1)
 mus.setopt(pycurl.VERBOSE, 0)
@@ -111,9 +111,7 @@ if str1:
 	mus = pycurl.Curl()
 	ans = StringIO.StringIO()
 	mus.setopt(pycurl.URL, 'https://m.vk.com/audio')
-	mus.setopt(pycurl.HTTPHEADER, ['X-Requested-With: XMLHttpRequest'])
-	mus.setopt(pycurl.COOKIEJAR, targetfile)
-	mus.setopt(pycurl.COOKIEFILE, targetfile)
+	mus.setopt(pycurl.HTTPHEADER, [str('Cookie: '+cookiestr),'X-Requested-With: XMLHttpRequest'])
 	mus.setopt(pycurl.POSTFIELDS, 'act=add&aid='+aid+'&hash='+HASHSUM+'&al=1&oid='+oid+'&search=1&top=0')
 	mus.setopt(pycurl.POST, 1)
 	mus.setopt(pycurl.FOLLOWLOCATION, 1)
