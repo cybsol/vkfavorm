@@ -49,9 +49,11 @@ cookiestr='; '.join(cookiemas)
 
 tmpdir = '/tmp/add_audio_vk'
 
+# this is first run, so lets write hash value
 if not os.path.isdir(tmpdir):
 	mus = pycurl.Curl()
 	ans = StringIO.StringIO()
+	# let's figure out our pageid
 	mus.setopt(pycurl.HTTPHEADER, ['Cookie: '+cookiestr])
 	mus.setopt(pycurl.URL, 'https://vk.com/feed')
 	mus.setopt(pycurl.FOLLOWLOCATION, 1)
@@ -65,6 +67,7 @@ if not os.path.isdir(tmpdir):
 	profile=re.search('<a href=\"/([^\"]+)\" onclick=\"return nav.go\(this, event, {noback: true}\)\" id=\"myprofile\" class=\"left_row\">',data)
 	pageid=profile.group(1)
 	
+	# figure out our hash
 	mus = pycurl.Curl()
 	ans = StringIO.StringIO()
 	mus.setopt(pycurl.HTTPHEADER, ['Cookie: '+cookiestr])
@@ -88,6 +91,7 @@ fread=open(tmpdir+'/addhash','r')
 HASHSUM=fread.read()
 fread.close()
 
+# looking for first match
 mus = pycurl.Curl()
 ans = StringIO.StringIO()
 mus.setopt(pycurl.URL, 'https://m.vk.com/audio')
@@ -103,6 +107,7 @@ mus.close()
 
 data=ans.getvalue()
 
+# adding him to our music list
 str1=re.search(ur'audioplayer.add\((\'([^\\]+)\'), event\)',data)
 if str1:
 	res=str1.group(2)
