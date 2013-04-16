@@ -54,7 +54,7 @@ if not os.path.isdir(tmpdir):
 	mus = pycurl.Curl()
 	ans = StringIO.StringIO()
 	# let's figure out our pageid
-	mus.setopt(pycurl.HTTPHEADER, ['Cookie: '+cookiestr])
+	mus.setopt(pycurl.HTTPHEADER, [str('Cookie: '+cookiestr)])
 	mus.setopt(pycurl.URL, 'https://vk.com/feed')
 	mus.setopt(pycurl.FOLLOWLOCATION, 1)
 	mus.setopt(pycurl.WRITEFUNCTION, ans.write)
@@ -70,7 +70,7 @@ if not os.path.isdir(tmpdir):
 	# figure out our hash
 	mus = pycurl.Curl()
 	ans = StringIO.StringIO()
-	mus.setopt(pycurl.HTTPHEADER, ['Cookie: '+cookiestr])
+	mus.setopt(pycurl.HTTPHEADER, [str('Cookie: '+cookiestr)])
 	mus.setopt(pycurl.URL, 'https://vk.com/'+pageid)
 	mus.setopt(pycurl.FOLLOWLOCATION, 1)
 	mus.setopt(pycurl.WRITEFUNCTION, ans.write)
