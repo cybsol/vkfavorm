@@ -73,6 +73,7 @@ if not os.path.isdir(tmpdir):
 	mus.setopt(pycurl.HTTPHEADER, [str('Cookie: '+cookiestr)])
 	mus.setopt(pycurl.URL, 'https://vk.com/'+pageid)
 	mus.setopt(pycurl.FOLLOWLOCATION, 1)
+	mus.setopt(pycurl.VERBOSE, 0)
 	mus.setopt(pycurl.WRITEFUNCTION, ans.write)
 	mus.setopt(pycurl.USERAGENT, "Mozilla/5.0 (X11; Linux x86_64; rv:20.0) Gecko/20100101 Firefox/20.0")
 
@@ -106,7 +107,6 @@ mus.perform()
 mus.close()
 
 data=ans.getvalue()
-
 # adding him to our music list
 str1=re.search(ur'audioplayer.add\((\'([^\\]+)\'), event\)',data)
 if str1:
@@ -114,12 +114,14 @@ if str1:
 	aid=re.search(ur'_([^_]+)',res).group(1)
 	oid=re.search(ur'([^_]+)',res).group(0)
 	mus = pycurl.Curl()
-	ans = StringIO.StringIO()
+	#ans = StringIO.StringIO()
 	mus.setopt(pycurl.URL, 'https://m.vk.com/audio')
 	mus.setopt(pycurl.HTTPHEADER, [str('Cookie: '+cookiestr),'X-Requested-With: XMLHttpRequest'])
 	mus.setopt(pycurl.POSTFIELDS, 'act=add&aid='+aid+'&hash='+HASHSUM+'&al=1&oid='+oid+'&search=1&top=0')
 	mus.setopt(pycurl.POST, 1)
 	mus.setopt(pycurl.FOLLOWLOCATION, 1)
+	mus.setopt(pycurl.VERBOSE, 0)
+	mus.setopt(pycurl.WRITEFUNCTION, lambda x: None)
 	mus.perform()
 	mus.close()
 	print 'success'
